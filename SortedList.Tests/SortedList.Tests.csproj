@@ -1,0 +1,17 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netcoreapp1.1</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="microsoft.net.test.sdk" Version="15.3.0" />
+    <PackageReference Include="nunit" Version="3.8.1" />
+    <PackageReference Include="nunit3testadapter" Version="3.8.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\SortedList\SortedList.csproj" />
+  </ItemGroup>
+
+</Project>
