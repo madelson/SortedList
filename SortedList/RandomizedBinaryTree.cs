@@ -99,6 +99,32 @@ namespace Medallion.Collections
             set => this.Insert(key, value, DuplicateHandling.Overwrite);
         }
 
+        public int IndexOf(TKey key, int startIndex = 0, int? count = null)
+        {
+            var foundIndex = this.FindIndex(key, startIndex, count);
+            return foundIndex < 0 ? -1 : foundIndex;
+        }
+
+        public int LastIndexOf(TKey key, int? startIndex = null, int? count = null)
+        {
+            throw new NotImplementedException();
+        }
+
+        public int FindIndex(TKey key, int startIndex = 0, int? count = null)
+        {
+            var countToUse = count ?? this.Count;
+            if (startIndex < 0) { throw new ArgumentOutOfRangeException(nameof(startIndex), startIndex, "must be non-negative"); }
+            if (countToUse < 0) { throw new ArgumentOutOfRangeException(nameof(count), countToUse, "must be non-negative"); }
+            //if (startIndex + countToUse > this.Count) { throw new ArgumentOutOfRangeException(nameof(count), count, "in combination with " + nameof(startIndex), " must refer to a valid range of indices"); }
+
+            throw new NotImplementedException();
+        }
+
+        public int FindLastIndex(TKey key, int startIndex = 0, int? count = null)
+        {
+            throw new NotImplementedException();
+        }
+
         public bool TryAdd(TKey key, TValue value) => this.Insert(key, value, DuplicateHandling.TryAddUnique);
 
         public void Add(TKey key, TValue value, bool allowDuplicates) => this.Insert(key, value, allowDuplicates ? DuplicateHandling.Add : DuplicateHandling.AddUnique);
