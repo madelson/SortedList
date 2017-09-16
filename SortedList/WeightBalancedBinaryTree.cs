@@ -93,7 +93,7 @@ namespace Medallion.Collections
         public TValue this[TKey key]
         {
             get => this.TryGetNode(key, out var node) ? default(TNodeDriver).GetValue(node) : throw new KeyNotFoundException();
-            set => this.Insert(key, value, DuplicateHandling.Overwrite);
+            set => this.Insert(default(TNodeDriver).CreateKeyAndValue(key, value), DuplicateHandling.OverwriteValue);
         }
 
         public int IndexOf(TKey key, int startIndex = 0, int? count = null)
@@ -122,64 +122,66 @@ namespace Medallion.Collections
             throw new NotImplementedException();
         }
 
-        public bool TryAdd(TKey key, TValue value) => this.Insert(key, value, DuplicateHandling.TryAddUnique);
+        public bool TryAdd(TKeyAndValue keyAndValue)
+        {
+            var initialCount = this.Count;
+            this.Insert(keyAndValue, DuplicateHandling.RetainOriginal);
+            return this._root.Count != initialCount;
+        }
 
-        public void Add(TKey key, TValue value, bool allowDuplicates) => this.Insert(key, value, allowDuplicates ? DuplicateHandling.Add : DuplicateHandling.AddUnique);
+        public void Add(TKeyAndValue keyAndValue, bool allowDuplicates) => this.Insert(keyAndValue, allowDuplicates ? DuplicateHandling.RetainAll : DuplicateHandling.EnforceUnique);
 
-        private bool Insert(TKey key, TValue value, DuplicateHandling duplicateHandling) => this.Insert(key, value, ref this._root, duplicateHandling);
+        private void Insert(TKeyAndValue keyAndValue, DuplicateHandling duplicateHandling)
+        {
+            this.Insert(default(TNodeDriver).GetKey(keyAndValue), ref keyAndValue, ref this._root, duplicateHandling);
+        }
 
-        private bool Insert(TKey key, TValue value, ref TNode nodeRef, DuplicateHandling duplicateHandling)
+        // note: keyAndValue is a ref purely to avoid struct copies
+        private void Insert(TKey key, ref TKeyAndValue keyAndValue, ref TNode nodeRef, DuplicateHandling duplicateHandling)
         {
             var node = nodeRef;
 
-            if (node == null)
+            if (node == null) // reached a leaf
             {
                 var driver = default(TNodeDriver);
                 var newNode = driver.Create();
-                newNode.Key = key;
-                throw new NotImplementedException();
-                //newNode.Value = value;
+                driver.SetKeyAndValue(newNode, keyAndValue);
                 newNode.Count = 1;
-                nodeRef = nodeRef = newNode;
-                return true;
+                nodeRef = newNode;
             }
-
-            throw new NotImplementedException();
-        }
-
-        /// <summary>
-        /// Splits the subtree represented by <paramref name="node"/> into two
-        /// trees based on <paramref name="key"/>
-        /// </summary>
-        private void Split(TNode node, TKey key, out TNode left, out TNode right)
-        {
-            var cmp = this.Comparer.Compare(key, node.Key);
-            if (cmp < 0)
+            else // compare to current key
             {
-                right = node;
-                if (node.Left == null)
+                var cmp = this.Comparer.Compare(key, node.Key);
+                if (cmp == 0)
                 {
-                    left = null;
+                    switch (duplicateHandling)
+                    {
+                        case DuplicateHandling.EnforceUnique:
+                            throw new ArgumentException("a duplicate item cannot be added to the collection");
+                        case DuplicateHandling.OverwriteValue:
+                            var driver = default(TNodeDriver);
+                            driver.SetValue(node, driver.GetValue(keyAndValue));
+                            return;
+                        case DuplicateHandling.RetainOriginal:
+                            return;
+                        case DuplicateHandling.RetainAll:
+                            // when inserting dupes, insert in the smaller side to maintain balance
+                            cmp = (node.Left?.Count ?? 0) <= (node.Right?.Count ?? 0) ? -1 : 1;
+                            break;
+                    }
+                }
+
+                if (cmp > 0)
+                {
+                    this.Insert(key, ref keyAndValue, ref node.Right, duplicateHandling);
+                    node.RecalculateCount();
+                    Rotations<TNode>.BalanceLeft(ref nodeRef);
                 }
                 else
                 {
-                    node.Count -= node.Left.Count;
-                    this.Split(node.Left, key, out left, out node.Left);
-                    node.Count += node.Left?.Count ?? 0;
-                }
-            }
-            else
-            {
-                left = node;
-                if (node.Right == null)
-                {
-                    right = null;
-                }
-                else
-                {
-                    node.Count -= node.Right.Count;
-                    this.Split(node.Right, key, out node.Right, out right);
-                    node.Count += node.Right?.Count ?? 0;
+                    this.Insert(key, ref keyAndValue, ref node.Left, duplicateHandling);
+                    node.RecalculateCount();
+                    Rotations<TNode>.BalanceRight(ref nodeRef);
                 }
             }
         }
@@ -189,11 +191,6 @@ namespace Medallion.Collections
 
     internal enum DuplicateHandling : byte
     {
-        Add = 1 << 0,
-        Overwrite = 1 << 1,
-        AddUnique = 1 << 2,
-        TryAddUnique = AddUnique | 1 << 3,
-
         EnforceUnique,
         RetainOriginal,
         OverwriteValue,

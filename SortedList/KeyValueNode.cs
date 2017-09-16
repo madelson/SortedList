@@ -21,6 +21,10 @@ namespace Medallion.Collections
             public TValue GetValue(KeyValueNode<TKey, TValue> node) => node.Value;
 
             public void SetValue(KeyValueNode<TKey, TValue> node, TValue value) => node.Value = value;
+
+            public (TKey, TValue) CreateKeyAndValue(TKey key, TValue value) => (key, value);
+
+            public TValue GetValue((TKey, TValue) keyAndValue) => keyAndValue.Item2;
         }
     }
 }

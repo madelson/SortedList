@@ -19,6 +19,10 @@ namespace Medallion.Collections
             public TKey GetValue(KeyNode<TKey> node) => node.Key;
 
             public void SetValue(KeyNode<TKey> node, TKey value) => throw new NotSupportedException();
+
+            public TKey CreateKeyAndValue(TKey key, TKey value) => key;
+
+            public TKey GetValue(TKey keyAndValue) => keyAndValue;
         }
     }
 }

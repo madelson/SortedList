@@ -20,6 +20,8 @@ namespace Medallion.Collections
     internal interface INodeDriver<TNode, TKey, TValue, TKeyAndValue> : INodeDriver<TNode, TKey, TKeyAndValue>
         where TNode : Node<TKey, TNode>
     {
+        TKeyAndValue CreateKeyAndValue(TKey key, TValue value);
+        TValue GetValue(TKeyAndValue keyAndValue);
         TValue GetValue(TNode node);
         void SetValue(TNode node, TValue value);
     }
