@@ -56,5 +56,26 @@ namespace Medallion.Collections.Tests
             tree.Max.Key.ShouldEqual("99");
             tree.Max.Value.ShouldEqual(99 * 99);
         }
+
+        [Test]
+        public void TestKeyValueAccess()
+        {
+            var tree = new WeightBalancedBinaryTree<KeyValueNode<string, int>, string, int, (string key, int value), KeyValueNode<string, int>.Driver>(StringComparer.OrdinalIgnoreCase);
+
+            tree.TryGetNode("a", out var aNode).ShouldEqual(false);
+            aNode.ShouldEqual(null);
+
+            tree["a"] = 1;
+            tree["a"].ShouldEqual(1);
+
+            tree.TryGetNode("A", out aNode).ShouldEqual(true);
+            aNode.Key.ShouldEqual("a");
+            aNode.Value.ShouldEqual(1);
+
+            tree["A"] = 6;
+            tree.TryGetNode("A", out aNode).ShouldEqual(true);
+            aNode.Key.ShouldEqual("a");
+            aNode.Value.ShouldEqual(6);
+        }
     }
 }
