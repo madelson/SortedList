@@ -41,5 +41,20 @@ namespace Medallion.Collections.Tests
             tree.SetValue(55, -1);
             tree["55"].ShouldEqual(-1);
         }
+
+        [Test]
+        public void TestMinAndMax()
+        {
+            var tree = new WeightBalancedBinaryTree<KeyValueNode<string, int>, string, int, (string key, int value), KeyValueNode<string, int>.Driver>(Comparer<string>.Default);
+
+            Assert.Throws<InvalidOperationException>(() => tree.Min.ToString());
+            Assert.Throws<InvalidOperationException>(() => tree.Max.ToString());
+
+            Enumerable.Range(0, 100).Reverse().ToList().ForEach(i => tree.Add((i.ToString("00"), i * i), allowDuplicates: false));
+            tree.Min.Key.ShouldEqual("00");
+            tree.Min.Value.ShouldEqual(0);
+            tree.Max.Key.ShouldEqual("99");
+            tree.Max.Value.ShouldEqual(99 * 99);
+        }
     }
 }

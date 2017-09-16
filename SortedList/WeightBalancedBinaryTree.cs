@@ -41,7 +41,7 @@ namespace Medallion.Collections
                 if (this._root == null) { throw new InvalidOperationException("the collection is empty"); }
 
                 var node = this._root;
-                while (node.Left != null) { node = node.Left; };
+                while (node.Right != null) { node = node.Right; };
                 return node;
             }
         }
