@@ -6,6 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="MedallionCollections" Version="1.1.0" />
     <PackageReference Include="MedallionRandom" Version="1.1.0" />
     <PackageReference Include="microsoft.net.test.sdk" Version="15.3.0" />
     <PackageReference Include="nunit" Version="3.8.1" />
