@@ -10,6 +10,8 @@ namespace Medallion.Collections
         public TNode Left, Right;
         public int Count;
 
+        public void RecalculateCount() => this.Count = ComputeCount(this.Left, this.Right);
+
         public static int ComputeCount(TNode left, TNode right) => (left?.Count ?? 0) + (right?.Count ?? 0) + 1;
     }
 
