@@ -4,18 +4,15 @@ using System.Text;
 
 namespace Medallion.Collections
 {
-   // todo can potentially use weight-balanced BST instead
-    internal struct RandomizedBinaryTree<TNode, TKey, TValue, TKeyAndValue, TNodeDriver>
+    internal struct WeightBalancedBinaryTree<TNode, TKey, TValue, TKeyAndValue, TNodeDriver>
         where TNode : Node<TKey, TNode>
         where TNodeDriver : struct, INodeDriver<TNode, TKey, TValue, TKeyAndValue>
     {
         private TNode _root;
-        private uint _randomState;
         
-        public RandomizedBinaryTree(IComparer<TKey> comparer)
+        public WeightBalancedBinaryTree(IComparer<TKey> comparer)
         {
             this._root = null;
-            this._randomState = 0;
             this.Comparer = comparer ?? Comparer<TKey>.Default;
         }
         
@@ -147,29 +144,7 @@ namespace Medallion.Collections
                 return true;
             }
 
-            if (RandomizationHelper.Choose(node.Count, ref this._randomState))
-            {
-                if ((duplicateHandling & DuplicateHandling.AddUnique) == DuplicateHandling.AddUnique)
-                {
-                }
-
-                // split and insert at root
-                this.Split(node, key, out var left, out var right);
-                var newNode = default(TNodeDriver).Create();
-                newNode.Key = key;
-                throw new NotImplementedException();
-                //newNode.Value = value;
-                newNode.Left = left;
-                newNode.Right = right;
-                newNode.Count = Node<TNode>.ComputeCount(left, right);
-                nodeRef = newNode;
-                return true;
-            }
-
-            ++node.Count;
-            var cmp = this.Comparer.Compare(key, node.Key);
-            if (cmp < 0) { return this.Insert(key, value, ref node.Left, duplicateHandling); }
-            else { return this.Insert(key, value, ref node.Right, duplicateHandling); }
+            throw new NotImplementedException();
         }
 
         /// <summary>
