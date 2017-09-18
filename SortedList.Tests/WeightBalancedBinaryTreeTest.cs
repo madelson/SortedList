@@ -77,5 +77,51 @@ namespace Medallion.Collections.Tests
             aNode.Key.ShouldEqual("a");
             aNode.Value.ShouldEqual(6);
         }
+
+        [Test]
+        public void TestRemoveByKey()
+        {
+            var tree = new WeightBalancedBinaryTree<KeyNode<int>, int, int, int, KeyNode<int>.Driver>(Comparer<int>.Default);
+            new List<int> { 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1 }.ForEach(i => tree.Add(i, allowDuplicates: true));
+
+            tree.Remove(1).ShouldEqual(true);
+            tree.TryGetNode(1, out _).ShouldEqual(true);
+            tree.Remove(1).ShouldEqual(true);
+            tree.Count.ShouldEqual(11);
+            tree.TryGetNode(1, out _).ShouldEqual(false);
+            tree.Remove(1).ShouldEqual(false);
+            tree.Count.ShouldEqual(11);
+
+            tree.Remove(8).ShouldEqual(false);
+            tree.Count.ShouldEqual(11);
+
+            tree.Remove(7).ShouldEqual(true);
+            tree.Count.ShouldEqual(10);
+            tree.TryGetNode(7, out _).ShouldEqual(false);
+
+            NodeValidator<KeyNode<int>, int>.Validate(tree._root);
+        }
+
+        [Test]
+        public void TestRemoveByIndex()
+        {
+            var tree = new WeightBalancedBinaryTree<KeyNode<int>, int, int, int, KeyNode<int>.Driver>(Comparer<int>.Default);
+            new List<int> { 1, 2, 3, 4, 5 }.ForEach(i => tree.Add(i, allowDuplicates: false));
+
+            Assert.Throws<ArgumentOutOfRangeException>(() => tree.RemoveAt(-1));
+            Assert.Throws<ArgumentOutOfRangeException>(() => tree.RemoveAt(tree.Count));
+
+            tree.RemoveAt(1);
+            tree.Count.ShouldEqual(4);
+            tree.TryGetNode(2, out _).ShouldEqual(false);
+
+            NodeValidator<KeyNode<int>, int>.Validate(tree._root);
+
+            tree.RemoveAt(3);
+            tree.Count.ShouldEqual(3);
+            tree.TryGetNode(5, out _).ShouldEqual(false);
+
+            NodeValidator<KeyNode<int>, int>.Validate(tree._root);
+        }
     }
 }

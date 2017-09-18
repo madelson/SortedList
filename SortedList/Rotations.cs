@@ -56,8 +56,7 @@ namespace Medallion.Collections
                 // <=> (3 * leftCount) + 2 >= rightCount
 
                 // note: uint cast prevents overflow
-                // note: right won't be null if we're balancing left
-                return (3 * (uint)(left?.Count ?? 0)) + 2 >= (uint)right.Count;
+                return (3 * (uint)(left?.Count ?? 0)) + 2 >= (uint)(right?.Count ?? 0);
             }
 
             private static bool NeedsSingleRotation(TNode rightsLeft, TNode rightsRight)

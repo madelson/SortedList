@@ -8,7 +8,7 @@ namespace Medallion.Collections
         where TNode : Node<TKey, TNode>
         where TNodeDriver : struct, INodeDriver<TNode, TKey, TValue, TKeyAndValue>
     {
-        private TNode _root;
+        internal TNode _root;
         
         public WeightBalancedBinaryTree(IComparer<TKey> comparer)
         {
@@ -183,6 +183,85 @@ namespace Medallion.Collections
                     node.RecalculateCount();
                     Rotations<TNode>.BalanceRight(ref nodeRef);
                 }
+            }
+        }
+
+        public bool Remove(TKey key) => this.Remove(key, ref this._root);
+
+        private bool Remove(TKey key, ref TNode node)
+        {
+            if (node == null) { return false; }
+
+            var cmp = this.Comparer.Compare(key, node.Key);
+
+            if (cmp < 0)
+            {
+                if (this.Remove(key, ref node.Left))
+                {
+                    --node.Count;
+                    Rotations<TNode>.BalanceLeft(ref node);
+                    return true;
+                }
+                return false;
+            }
+            if (cmp > 0)
+            {
+                if (this.Remove(key, ref node.Right)) // cmp > 0
+                {
+                    --node.Count;
+                    Rotations<TNode>.BalanceRight(ref node);
+                    return true;
+                }
+                return false;
+            }
+            
+            node = Join(node.Left, node.Right);
+            return true;
+        }
+
+        private static TNode Join(TNode left, TNode right)
+        {
+            if (left == null) { return right; }
+            if (right == null) { return left; }
+
+            if ((left.Left?.Count ?? 0) > (right.Right?.Count ?? 0))
+            {
+                left.Right = Join(left.Right, right);
+                left.RecalculateCount();
+                Rotations<TNode>.BalanceLeft(ref left);
+                return left;
+            }
+
+            right.Left = Join(left, right.Left);
+            right.RecalculateCount();
+            Rotations<TNode>.BalanceRight(ref right);
+            return right;
+        }
+
+        public void RemoveAt(int index)
+        {
+            if (index < 0 || index >= this.Count) { throw new ArgumentOutOfRangeException(nameof(index), index, "must be non-negative and less than Count"); }
+            RemoveAt(index, ref this._root);
+        }
+
+        private static void RemoveAt(int index, ref TNode node)
+        {
+            var leftCount = node.Left?.Count ?? 0;
+            if (index < leftCount)
+            {
+                RemoveAt(index, ref node.Left);
+                --node.Count;
+                Rotations<TNode>.BalanceRight(ref node);
+            }
+            else if (index > leftCount)
+            {
+                RemoveAt(index - leftCount - 1, ref node.Right);
+                --node.Count;
+                Rotations<TNode>.BalanceLeft(ref node);
+            }
+            else
+            {
+                node = Join(node.Left, node.Right);
             }
         }
 
