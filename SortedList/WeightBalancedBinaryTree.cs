@@ -265,6 +265,187 @@ namespace Medallion.Collections
             }
         }
 
+        #region ---- Non-recursive ----
+        //private static TNode EmptyRef;
+
+        //private ref TNode GetNodeOrDefault(ref TNode root, TKey key)
+        //{
+        //    if (root == null) { return ref root; }
+
+        //    var cmp = this.Comparer.Compare(key, root.Key);
+        //    if (cmp == 0) { return ref root; }
+
+        //    var parent = root;
+        //    TNode current;
+        //    bool isCurrentLeftChild;
+            
+        //    while (true)
+        //    {
+        //        if (cmp < 0)
+        //        {
+        //            current = parent.Left;
+        //            isCurrentLeftChild = true;
+        //        }
+        //        else
+        //        {
+        //            current = parent.Right;
+        //            isCurrentLeftChild = false;
+        //        }
+
+        //        if (current == null) { return ref EmptyRef; }
+
+        //        cmp = this.Comparer.Compare(key, current.Key);
+        //        if (cmp == 0)
+        //        {
+        //            if (isCurrentLeftChild) { return ref parent.Left; }
+        //            else { return ref parent.Right; }
+        //        }
+
+        //        parent = current;
+        //    }
+        //}
+
+        //private void Remove(ref TNode node)
+        //{
+        //    node = NonRecursiveJoin(node.Left, node.Right);
+        //}
+
+        //private TNode NonRecursiveJoin(TNode left, TNode right)
+        //{
+        //    var currentLeft = left;
+        //    var currentRight = right;
+
+        //    if (currentLeft == null) { return currentRight; }
+        //    if (currentRight == null) { return currentLeft; }
+
+        //    TNode result = null;
+        //    TNode currentRoot = null;
+        //    bool currentRootNeedsLeftChildAssigned = false;
+
+        //    while (true)
+        //    {
+        //        TNode joinRoot;
+        //        bool joinRootNeedsLeftChildAssigned;
+        //        if (this.ShouldMakeNewRoot(currentLeft.Count, currentRight.Count))
+        //        {
+        //            joinRoot = currentLeft;
+        //            joinRoot.Count += currentRight.Count + 1;
+        //            currentLeft = joinRoot.Right;
+        //            joinRootNeedsLeftChildAssigned = false;
+        //        }
+        //        else
+        //        {
+        //            joinRoot = currentRight;
+        //            joinRoot.Count += currentLeft.Count + 1;
+        //            currentRight = joinRoot.Left;
+        //            joinRootNeedsLeftChildAssigned = true;
+        //        }
+
+        //        if (result == null)
+        //        {
+        //            result = joinRoot;
+        //        }
+        //        else if (currentRootNeedsLeftChildAssigned)
+        //        {
+        //            currentRoot.Left = joinRoot;
+        //        }
+        //        else
+        //        {
+        //            currentRoot.Right = joinRoot;
+        //        }
+        //        currentRoot = joinRoot;
+        //        currentRootNeedsLeftChildAssigned = joinRootNeedsLeftChildAssigned;
+
+        //        // todo need to handle nulls
+        //    }
+        //}
+
+        //private bool ShouldMakeNewRoot(int n)
+        //{
+        //    return true;
+        //}
+
+        //private bool ShouldMakeNewRoot(int n, int m)
+        //{
+        //    return true;
+        //}
+        #endregion
+
+        #region ---- Ideas ----
+        // like a treap, but rotate up until we reach desired depth!
+    
+        // general idea: on the way down we can compute the exact index of the new element in the tree. That means
+        // we can derive the desired depth by using the same formula we'd use to go up a heap index-wise (divide by 2).
+        // We can therefore rotate the new node up the tree until we reach the desired depth, or possibly the desired depth + 1
+        // if we want to avoid some rotations.
+
+        // For delete, we traverse to the node calculating index along the way. When we get there, if it's a leaf we just remove it.
+        // Otherwise, we search the subtree for a node of the right desired depth and pull that one up (is this just one of the children?)
+
+        //public void PerfectAdd(TKey key, TValue value)
+        //{
+        //    if (this._root == null)
+        //    {
+        //        throw new NotImplementedException();
+        //    }
+
+        //    this.PerfectAdd(key, value, ref this._root, 0);
+        //}
+
+        //private int PerfectAdd(TKey key, TValue value, ref TNode node, int outerLeftCount, int depth, out TNode splitPoint)
+        //{
+        //    if (node == null)
+        //    {
+        //        var oneBasedIndex = outerLeftCount + 1;
+        //        var desiredDepth = 0;
+        //        while (oneBasedIndex > 1)
+        //        {
+        //            ++desiredDepth;
+        //            oneBasedIndex >>= 1;
+        //        }
+
+        //        splitPoint = null;
+        //        if (desiredDepth == 0)
+        //        {
+        //            node = default(TNodeDriver).Create();
+        //            return -1;
+        //        }
+        //        return desiredDepth;
+        //    }
+        //    else
+        //    {
+        //        var cmp = this.Comparer.Compare(key, node.Key);
+        //        if (cmp <= 0)
+        //        {
+        //            var desiredDepth = this.PerfectAdd(key, value, ref node.Left, outerLeftCount, depth + 1, out var childSplitPoint);
+        //            if (desiredDepth == depth)
+        //            {
+        //                var newNode = default(TNodeDriver).Create();
+        //                newNode.Right = node;
+        //                newNode.Left = childSplitPoint;
+        //                node.RecalculateCount();
+        //                newNode.RecalculateCount();
+        //                splitPoint = null;
+        //                return -1;
+        //            }
+        //            else
+        //            {
+
+        //            }
+        //        }
+
+        //        //TNode childSplitPoint;
+        //        //var desiredDepth = cmp <= 0
+        //        //    ? this.PerfectAdd(key, value, ref node.Left, outerLeftCount, depth + 1, out childSplitPoint)
+        //        //    : this.PerfectAdd(key, value, ref node.Right, outerLeftCount + 1 + (node.Left?.Count ?? 0), depth + 1, out childSplitPoint);
+        //        //if (desiredDepth == depth)
+        //        //{
+        //        //}
+        //    }
+            
+        //}
+        #endregion
+
         // todo set operations
     }
 
