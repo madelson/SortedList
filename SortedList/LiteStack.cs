@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text;
 using System.Threading;
 
@@ -9,7 +10,11 @@ namespace Medallion.Collections
     {
         private const int InitialCapacity = 32, MaxCacheableCapacity = 4 * InitialCapacity;
 
+        private static readonly T[] EmptyArray = Enumerable.Empty<T>() as T[] ?? new T[0];
+
         private static T[] CachedArray;
+
+        public static LiteStack<T> Empty => new LiteStack<T> { _array = EmptyArray };
 
         private T[] _array;
 
@@ -24,11 +29,13 @@ namespace Medallion.Collections
         {
             if (this.Count == this._array.Length)
             {
-                Array.Resize(ref this._array, 2 * this._array.Length);
+                this.Grow();
             }
 
             this._array[this.Count++] = value;
         }
+
+        private void Grow() => Array.Resize(ref this._array, Math.Max(InitialCapacity, 2 * this._array.Length));
 
         public T Pop()
         {

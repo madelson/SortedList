@@ -11,21 +11,21 @@
 
 void Main()
 {
-	for (var i = 1; i < 1000000; ++i)
-	{
-		if (FloorLog(i) != (int)Math.Log(i, 2))
-		{
-			i.Dump();
-		}
-	}
+//	for (var i = 1; i < 1000000; ++i)
+//	{
+//		if (FloorLogB(i) != (int)Math.Log(i, 2))
+//		{
+//			i.Dump();
+//		}
+//	}
+	MyExtensions.Time(() =>
+{
+	var s = 0; for (var i = 0; i < 20000; ++i) { s += FloorLogB(i); }
+	if (s == int.MaxValue) { throw new Exception(); }
+}).Dump();
 	MyExtensions.Time(() =>
 	{
-		var s = 0; for (var i = 0; i < 10000; ++i) { s += FloorLog(i); }
-		if (s == int.MaxValue) { throw new Exception(); }
-	}).Dump();
-	MyExtensions.Time(() =>
-	{
-		var s = 0; for (var i = 0; i < 10000; ++i) { s += log2(i); }
+		var s = 0; for (var i = 0; i < 20000; ++i) { s += FloorLog(i); }
 		if (s == int.MaxValue) { throw new Exception(); }
 	}).Dump();
 
@@ -210,6 +210,32 @@ static int FloorLog(int v)
 	
 	var z = v >> 8;
 	return z != 0 ? 8 + LogTable256[z] : LogTable256[v];
+}
+
+static readonly sbyte[] LogTable256b = new Func<sbyte[]>(() =>
+{
+	var result = new sbyte[256];
+	result[0] = result[1] = 0;
+	for (int i = 2; i < 256; i++)
+	{
+		result[i] = (sbyte)(1 + result[i / 2]);
+	}
+	result[0] = -1; // if you want log(0) to return -1
+
+	return result;
+})();
+
+static int FloorLogB(int v)
+{
+	var tt = v >> 16;
+	if (tt != 0)
+	{
+		var t = tt >> 8;
+		return t != 0 ? 24 + LogTable256b[t] : 16 + LogTable256b[tt];
+	}
+
+	var z = v >> 8;
+	return z != 0 ? 8 + LogTable256b[z] : LogTable256b[v];
 }
 
 private static int log2(int value)
