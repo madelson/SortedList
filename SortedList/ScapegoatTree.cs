@@ -16,7 +16,7 @@ namespace Medallion.Collections
         {
             this._root = null;
             this._maxCount = 0;
-            this._logTableIndex = 0;
+            this._logTableIndex = 1;
             this.Comparer = comparer;
         }
 
@@ -130,6 +130,11 @@ namespace Medallion.Collections
             var count = this.Count;
             if (count <= ScapegoatHelper.Alpha * this._maxCount)
             {
+                if (count < ScapegoatHelper.LogTable[this._logTableIndex])
+                {
+                    --this._logTableIndex;
+                }
+
                 BalanceAfterDeletion(ref this._root);
                 this._maxCount = count;
             }

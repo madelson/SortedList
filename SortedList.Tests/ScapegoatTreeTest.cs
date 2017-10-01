@@ -27,6 +27,21 @@ namespace Medallion.Collections.Tests
         }
 
         [Test]
+        public void TestAddDuplicates()
+        {
+            var tree = new ScapegoatTree<bool>(Comparer<bool>.Default);
+            Enumerable.Range(0, 10).ToList().ForEach(_ => tree.AddAllowDuplicates(true));
+            Enumerable.Range(0, 10).ToList().ForEach(_ => tree.AddAllowDuplicates(false));
+            tree.CheckInvariants();
+
+            tree.Count.ShouldEqual(20);
+            tree.TryGetNode(false, out var falseNode).ShouldEqual(true);
+            falseNode.Key.ShouldEqual(false);
+            tree.TryGetNode(true, out var trueNode).ShouldEqual(true);
+            trueNode.Key.ShouldEqual(true);
+        }
+
+        [Test]
         public void TestIndexedAccess()
         {
             var tree = new ScapegoatTree<string>(StringComparer.Ordinal);
@@ -75,6 +90,12 @@ namespace Medallion.Collections.Tests
             tree.Count.ShouldEqual(10);
             tree.TryGetNode(7, out _).ShouldEqual(false);
 
+            tree.CheckInvariants();
+
+            while (tree.Count > 0)
+            {
+                tree.Remove(tree.Min.Key);
+            }
             tree.CheckInvariants();
         }
 
