@@ -30,15 +30,17 @@ namespace Medallion.Collections
             if (existing != null) { throw new ArgumentException("The given item was already present in the collection"); }
         }
 
-        public Node AddOrGetExisting(TKey key)
+        public void AddAllowDuplicates(TKey key) => this.AddOrGetExisting(key, allowDuplicates: true);
+
+        public Node AddOrGetExisting(TKey key, bool allowDuplicates = false)
         {
-            var (existing, needsRebuild) = this.AddOrGetExisting(ref this._root, key, depth: 0);
+            var (existing, needsRebuild) = this.AddOrGetExisting(ref this._root, key, depth: 0, allowDuplicates: allowDuplicates);
             Debug.Assert(!needsRebuild);
             this.UpdateMaxCount();
             return existing;
         }
 
-        private (Node existing, bool needsRebuild) AddOrGetExisting(ref Node node, TKey key, int depth)
+        private (Node existing, bool needsRebuild) AddOrGetExisting(ref Node node, TKey key, int depth, bool allowDuplicates)
         {
             if (node == null)
             {
@@ -48,9 +50,20 @@ namespace Medallion.Collections
             }
             
             var cmp = this.Comparer.Compare(key, node.Key);
+
+            // if we're allowing duplicates and we are a duplicate, place the new node such that it falls
+            // in the subtree with smaller count. If both subtrees have equal count, place it arbitrarily on
+            // the left
+            if (allowDuplicates && cmp == 0)
+            {
+                var countCmp = node.LeftCount.CompareTo(node.RightCount);
+                if (countCmp != 0) { cmp = countCmp; }
+                else { cmp = -1; }
+            }
+
             if (cmp < 0)
             {
-                var result = this.AddOrGetExisting(ref node.Left, key, depth + 1);
+                var result = this.AddOrGetExisting(ref node.Left, key, depth + 1, allowDuplicates);
                 if (result.existing != null) { return result; }
 
                 ++node.Count;
@@ -64,7 +77,7 @@ namespace Medallion.Collections
             }
             if (cmp > 0)
             {
-                var result = this.AddOrGetExisting(ref node.Right, key, depth + 1);
+                var result = this.AddOrGetExisting(ref node.Right, key, depth + 1, allowDuplicates);
                 if (result.existing != null) { return result; }
 
                 ++node.Count;
@@ -168,8 +181,8 @@ namespace Medallion.Collections
 
             // two children => replace with next or previous child
             --node.Count;
-            if (node.Right.Count > node.Left.Count) { ReplaceForDeletion(node, ref FindMin(ref node.Right)); }
-            else { ReplaceForDeletion(node, ref FindMax(ref node.Left)); }
+            if (node.Right.Count > node.Left.Count) { ReplaceForDeletion(node, ref FindMinForDeletion(ref node.Right)); }
+            else { ReplaceForDeletion(node, ref FindMaxForDeletion(ref node.Left)); }
         }
 
         private static void ReplaceForDeletion(Node toDelete, ref Node replacement)
@@ -178,16 +191,18 @@ namespace Medallion.Collections
             Delete(ref replacement);
         }
 
-        private static ref Node FindMin(ref Node current)
+        private static ref Node FindMinForDeletion(ref Node current)
         {
             if (current.Left == null) { return ref current; }
-            return ref FindMin(ref current.Left);
+            --current.Count;
+            return ref FindMinForDeletion(ref current.Left);
         }
 
-        private static ref Node FindMax(ref Node current)
+        private static ref Node FindMaxForDeletion(ref Node current)
         {
             if (current.Right == null) { return ref current; }
-            return ref FindMax(ref current.Right);
+            --current.Count;
+            return ref FindMaxForDeletion(ref current.Right);
         }
         #endregion
 

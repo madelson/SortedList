@@ -55,11 +55,11 @@ namespace Medallion.Collections.Tests
         }
 
         [Test]
-        public void TestRemoveByKey()
+        public void TestRemove()
         {
-            var tree = new WeightBalancedBinaryTree<KeyNode<int>, int, int, int, KeyNode<int>.Driver>(Comparer<int>.Default);
-            new List<int> { 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1 }.ForEach(i => tree.Add(i, allowDuplicates: true));
-
+            var tree = new ScapegoatTree<int>(Comparer<int>.Default);
+            new List<int> { 1, 2, 3, 4, 5, 6, 7, 6, 5, 4, 3, 2, 1 }.ForEach(i => tree.AddAllowDuplicates(i));
+            
             tree.Remove(1).ShouldEqual(true);
             tree.TryGetNode(1, out _).ShouldEqual(true);
             tree.Remove(1).ShouldEqual(true);
@@ -75,7 +75,7 @@ namespace Medallion.Collections.Tests
             tree.Count.ShouldEqual(10);
             tree.TryGetNode(7, out _).ShouldEqual(false);
 
-            NodeValidator<KeyNode<int>, int>.Validate(tree._root);
+            tree.CheckInvariants();
         }
 
         [Test]
