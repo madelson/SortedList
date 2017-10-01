@@ -100,10 +100,11 @@ namespace Medallion.Collections.Tests
         }
 
         [Test]
-        public void TestRemoveByIndex()
+        public void TestRemoveAt()
         {
-            var tree = new WeightBalancedBinaryTree<KeyNode<int>, int, int, int, KeyNode<int>.Driver>(Comparer<int>.Default);
-            new List<int> { 1, 2, 3, 4, 5 }.ForEach(i => tree.Add(i, allowDuplicates: false));
+            var tree = new ScapegoatTree<int>(Comparer<int>.Default);
+            new List<int> { 1, 2, 3, 4, 5 }.ForEach(i => tree.Add(i));
+            tree.CheckInvariants();
 
             Assert.Throws<ArgumentOutOfRangeException>(() => tree.RemoveAt(-1));
             Assert.Throws<ArgumentOutOfRangeException>(() => tree.RemoveAt(tree.Count));
@@ -111,14 +112,18 @@ namespace Medallion.Collections.Tests
             tree.RemoveAt(1);
             tree.Count.ShouldEqual(4);
             tree.TryGetNode(2, out _).ShouldEqual(false);
-
-            NodeValidator<KeyNode<int>, int>.Validate(tree._root);
+            tree.CheckInvariants();
 
             tree.RemoveAt(3);
             tree.Count.ShouldEqual(3);
             tree.TryGetNode(5, out _).ShouldEqual(false);
-
-            NodeValidator<KeyNode<int>, int>.Validate(tree._root);
+            tree.CheckInvariants();
+            
+            while (tree.Count > 0)
+            {
+                tree.RemoveAt(tree.Count >> 1);
+            }
+            tree.CheckInvariants();
         }
     }
 }

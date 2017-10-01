@@ -16,7 +16,7 @@ namespace Medallion.Collections
         {
             this._root = null;
             this._maxCount = 0;
-            this._logTableIndex = 1;
+            this._logTableIndex = 1; // log(0) = 1
             this.Comparer = comparer;
         }
 
@@ -126,19 +126,13 @@ namespace Medallion.Collections
         #region ---- Removal ----
         public bool Remove(TKey key)
         {
-            var result = this.Remove(ref this._root, key);
-            var count = this.Count;
-            if (count <= ScapegoatHelper.Alpha * this._maxCount)
+            if (this.Remove(ref this._root, key))
             {
-                if (count < ScapegoatHelper.LogTable[this._logTableIndex])
-                {
-                    --this._logTableIndex;
-                }
-
-                BalanceAfterDeletion(ref this._root);
-                this._maxCount = count;
+                this.OnItemRemoved();
+                return true;
             }
-            return result;
+            
+            return false;
         }
 
         private bool Remove(ref Node node, TKey key)
@@ -161,6 +155,46 @@ namespace Medallion.Collections
             // cmp == 0
             Delete(ref node);
             return true;
+        }
+
+        public void RemoveAt(int index)
+        {
+            this.ValidateIndex(index);
+            this.RemoveAt(ref this._root, index);
+            this.OnItemRemoved();
+        }
+
+        private void RemoveAt(ref Node node, int index)
+        {
+            var leftCount = node.LeftCount;
+            if (index < leftCount)
+            {
+                --node.Count;
+                this.RemoveAt(ref node.Left, index);
+            }
+            else if (index > leftCount)
+            {
+                --node.Count;
+                this.RemoveAt(ref node.Right, index - (leftCount + 1));
+            }
+            else
+            {
+                Delete(ref node);
+            }
+        }
+
+        private void OnItemRemoved()
+        {
+            var count = this.Count;
+            if (count < ScapegoatHelper.LogTable[this._logTableIndex])
+            {
+                --this._logTableIndex;
+            }
+            if (count <= ScapegoatHelper.Alpha * this._maxCount)
+            {
+                BalanceAfterDeletion(ref this._root);
+                this._maxCount = count;
+            }
         }
 
         private static void Delete(ref Node node)
@@ -369,7 +403,7 @@ namespace Medallion.Collections
 
         public Node GetNodeAtIndex(int index)
         {
-            if (index < 0 || index >= this.Count) { throw new ArgumentOutOfRangeException(nameof(index), index, "must be non-negative and less than Count"); }
+            this.ValidateIndex(index);
 
             var node = this._root;
             var adjustedIndex = index;
@@ -392,6 +426,11 @@ namespace Medallion.Collections
         #endregion 
 
         #region ---- Helpers ----
+        private void ValidateIndex(int index)
+        {
+            if (index < 0 || index >= this.Count) { throw new ArgumentOutOfRangeException(nameof(index), index, "must be non-negative and less than Count"); }
+        }
+
         internal void CheckInvariants(Node node = null)
         {
             var nodeToCheck = node ?? this._root;
