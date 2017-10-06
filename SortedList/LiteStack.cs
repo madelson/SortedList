@@ -6,22 +6,13 @@ using System.Threading;
 
 namespace Medallion.Collections
 {
-    internal struct LiteStack<T> : IDisposable
+    internal struct LiteStack<T>
     {
-        private const int InitialCapacity = 32, MaxCacheableCapacity = 4 * InitialCapacity;
-
         private static readonly T[] EmptyArray = Enumerable.Empty<T>() as T[] ?? new T[0];
-
-        private static T[] CachedArray;
-
+        
         public static LiteStack<T> Empty => new LiteStack<T> { _array = EmptyArray };
 
         private T[] _array;
-
-        public static LiteStack<T> Create()
-        {
-            return new LiteStack<T> { _array = Interlocked.Exchange(ref CachedArray, null) ?? new T[InitialCapacity] };
-        }
 
         public int Count { get; private set; }
 
@@ -35,7 +26,7 @@ namespace Medallion.Collections
             this._array[this.Count++] = value;
         }
 
-        private void Grow() => Array.Resize(ref this._array, Math.Max(InitialCapacity, 2 * this._array.Length));
+        private void Grow() => Array.Resize(ref this._array, Math.Max(16, 2 * this._array.Length));
 
         public T Pop()
         {
@@ -55,16 +46,6 @@ namespace Medallion.Collections
                 this._array[i] = default(T);
             }
             this.Count = 0;
-        }
-
-        public void Dispose()
-        {
-            this.Clear();
-
-            if (this._array.Length <= MaxCacheableCapacity)
-            {
-                Volatile.Write(ref CachedArray, this._array);
-            }
         }
     }
 }

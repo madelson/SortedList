@@ -423,7 +423,49 @@ namespace Medallion.Collections
 
         #region ---- Bulk Operations ----
         public void Clear() => this._root = null;
-        #endregion 
+
+        public void AddRange(IEnumerable<TKey> items)
+        {
+            // todo bulk optimization
+            foreach (var item in items)
+            {
+                this.Add(item);
+            }
+        }
+
+        public void AddRangeAllowDuplicates(IEnumerable<TKey> items)
+        {
+            // todo bulk optimization
+            foreach (var item in items)
+            {
+                this.AddAllowDuplicates(item);
+            }
+        }
+        #endregion
+
+        #region ---- Enumeration ----
+        public void CopyTo(TKey[] array, int arrayIndex)
+        {
+            if (array == null) { throw new ArgumentNullException(nameof(array)); }
+            if (arrayIndex < 0 || arrayIndex > array.Length) { throw new ArgumentOutOfRangeException(nameof(arrayIndex), arrayIndex, "must be non-negative and less than the length of the array"); }
+            var count = this.Count;
+            if (arrayIndex + count > array.Length) { throw new ArgumentOutOfRangeException(nameof(arrayIndex), arrayIndex, "must leave room for all elements in the collection"); }
+
+            var index = arrayIndex;
+            this.InternalCopyTo(this._root, array, ref arrayIndex);
+        }
+
+        private void InternalCopyTo(Node node, TKey[] array, ref int index)
+        {
+            if (node == null) { return; }
+
+            this.InternalCopyTo(node, array, ref index);
+            array[index++] = node.Key;
+            this.InternalCopyTo(node, array, ref index);
+        }
+
+
+        #endregion
 
         #region ---- Helpers ----
         private void ValidateIndex(int index)
