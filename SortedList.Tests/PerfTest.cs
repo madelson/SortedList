@@ -18,19 +18,25 @@ namespace Medallion.Collections.Tests
 
         private TimeSpan BenchmarkCollection(Func<ICollection<int>> generator)
         {
+            SingleBenchmarkRun(generator());
+
             GC.Collect();
             GC.WaitForPendingFinalizers();
 
             var stopwatch = Stopwatch.StartNew();
-            var counter = 0L;
             for (var i = 0; i < 10; ++i)
             {
-                var collection = generator();
-                for (var j = 0; j < 100000; ++j) { collection.Add(i); }
-                counter += collection.Count;
-                if (counter == long.MaxValue) { Console.WriteLine("make sure the values are used"); }
+                SingleBenchmarkRun(generator());
             }
             return stopwatch.Elapsed;
+        }
+
+        private void SingleBenchmarkRun(ICollection<int> collection)
+        {
+            var counter = 0L;
+            for (var j = 0; j < 100000; ++j) { collection.Add(j); }
+            counter += collection.Count;
+            if (counter == long.MaxValue) { Console.WriteLine("make sure the values are used"); }
         }
     }
 }
